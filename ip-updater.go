@@ -1,7 +1,8 @@
-package godaddy_oc_updater
+package kubeless
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -17,10 +18,6 @@ var (
 	apiClient *godaddy.APIClient
 )
 
-func Handler(event functions.Event, context functions.Context) (string, error) {
-	return event.Data, nil
-}
-
 func setup() {
 	basePath := os.Getenv("API_BASE")
 	if basePath == "" {
@@ -34,14 +31,14 @@ func setup() {
 	if apiSecret == "" {
 		panic("API_SECRET not set")
 	}
-	
- 	var apiConfig = godaddy.NewConfiguration()
+
+	var apiConfig = godaddy.NewConfiguration()
 	// Test
 	// apiConfig.BasePath = "https://api.ote-godaddy.com/"
 
 	// Prod
 	// apiConfig.BasePath = "https://api.godaddy.com/"
-	
+
 	// set from env
 	apiConfig.BasePath = basePath
 
@@ -64,7 +61,7 @@ func GetOutboundIP() (net.IP, error) {
 	return consensus.ExternalIP()
 }
 
-func main() {
+func Handler(event functions.Event, ctx functions.Context) (string, error) {
 	setup()
 	domain := os.Getenv("API_DOMAIN")
 	if domain == "" {
@@ -109,12 +106,16 @@ func main() {
 		}
 
 		if replace.StatusCode == 200 {
-			logrus.Infof("Successfully updated %d dns records.", len(updates))
+			msg := fmt.Sprintf("Successfully updated %d dns records.", len(updates))
+			logrus.Infof(msg)
+			return msg, nil
 		} else {
 			logrus.Errorf("Failed to update dns records. %+v", replace)
+			return "", errors.New("failed to update dns records")
 		}
 	} else {
 		logrus.Infof("No update is required")
 		spew.Dump(dnsRecords)
+		return "no update is required", nil
 	}
 }
