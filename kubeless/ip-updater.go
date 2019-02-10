@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/glendc/go-external-ip"
+	"github.com/kryptoslogic/godaddy-domainclient"
 	"github.com/kubeless/kubeless/pkg/functions"
-	"github.com/nadilas/godaddy-oc-updater/godaddy"
 	"github.com/sirupsen/logrus"
 )
 
@@ -31,7 +32,6 @@ func setup() {
 	if apiSecret == "" {
 		panic("API_SECRET not set")
 	}
-
 	var apiConfig = godaddy.NewConfiguration()
 	// Test
 	// apiConfig.BasePath = "https://api.ote-godaddy.com/"
@@ -67,6 +67,20 @@ func Handler(event functions.Event, ctx functions.Context) (string, error) {
 	if domain == "" {
 		panic("API_DOMAIN not set")
 	}
+	ttlStr := os.Getenv("API_NEW_TTL")
+	var (
+		ttl int
+		e   error
+	)
+	if ttlStr != "" {
+		ttl, e = strconv.Atoi(ttlStr)
+		if e != nil {
+			logrus.Errorf("Cannot interpret TTL input: %s", e)
+			ttl = 3600
+		} else {
+			logrus.Infof("Setting TTL to: %d", ttl)
+		}
+	}
 	outbound, err := GetOutboundIP()
 	if err != nil {
 		panic(err)
@@ -82,10 +96,13 @@ func Handler(event functions.Event, ctx functions.Context) (string, error) {
 	var updates []godaddy.DnsRecordCreateType
 	// check records
 	for _, r := range dnsRecords {
-		if r.Data != currIP {
+		if r.Data != currIP || r.Ttl != int32(ttl) {
 			logrus.Warnf("Current IP has changed for %s. Updating %s -> %s", r.Name, r.Data, currIP)
 			// simply replace it
 			r.Data = currIP
+			if r.Ttl != int32(ttl) {
+				logrus.Infof("Updating TTL %d -> %d", r.Ttl, ttl)
+			}
 			updates = append(updates, godaddy.DnsRecordCreateType{
 				Data:     currIP,
 				Name:     r.Name,
@@ -93,7 +110,7 @@ func Handler(event functions.Event, ctx functions.Context) (string, error) {
 				Priority: r.Priority,
 				Protocol: r.Protocol,
 				Service:  r.Service,
-				Ttl:      r.Ttl,
+				Ttl:      int32(ttl),
 				Weight:   r.Weight,
 			})
 		}
