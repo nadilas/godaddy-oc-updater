@@ -1,0 +1,15 @@
+[[constraint]]
+  name = "github.com/davecgh/go-spew"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/glendc/go-external-ip"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/kryptoslogic/godaddy-domainclient"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/sirupsen/logrus"
+  branch = "master"
