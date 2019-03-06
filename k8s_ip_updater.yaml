@@ -1,0 +1,33 @@
+# example: https://medium.com/jobteaser-dev-team/kubernetes-cronjob-101-56f0a8ea7ca2
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: ip-updater
+  annotations:
+    alpha.image.policy.openshift.io/resolve-names: "*"
+  namespace: home
+spec:
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: ip-updater
+              image: nadilas/godaddy-oc-updater
+              env:
+                - name: API_KEY
+                  value: "<api_key>"
+                - name: API_SECRET
+                  value: "<api_secret>"
+                - name: API_BASE
+                  value: "https://api.godaddy.com/"
+                - name: API_DOMAIN
+                  value: "<domain.entry>"
+                - name: API_NEW_TTL
+                  value: "1800"
+              command:
+                - "/opt/ip-updater"
+          restartPolicy: OnFailure
