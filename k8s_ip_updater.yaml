@@ -29,5 +29,5 @@ spec:
                 - name: API_NEW_TTL
                   value: "1800"
               command:
-                - "/opt/ip-updater"
+                - "/bin/ip-updater"
           restartPolicy: OnFailure
