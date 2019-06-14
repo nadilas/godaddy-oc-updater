@@ -70,6 +70,11 @@ func GetOutboundIP() (net.IP, error) {
 
 func handler() (string, error) {
 	setup()
+	allowedNamesStr := os.Getenv("DOMAIN_NAMES_WHITELIST")
+	whitelist := strings.Split(allowedNamesStr, ",")
+	if len(whitelist) == 0 {
+		logrus.Infof("No whitelist provided, update will consider all A records for update.")
+	}
 	domain := os.Getenv("API_DOMAIN")
 	if domain == "" {
 		panic("API_DOMAIN not set")
@@ -122,6 +127,10 @@ func handler() (string, error) {
 	var updates []godaddy.DnsRecordCreateType
 	// check records
 	for _, r := range dnsRecords {
+		if !strArrContains(whitelist, r.Name) {
+			logrus.Warnf("%s is not in allowed names list, hence will not be updated.", r.Name)
+			continue
+		}
 		if r.Data != currIP || r.Ttl != int32(ttl) {
 			logrus.Warnf("Current IP has changed for %s. Updating %s -> %s", r.Name, r.Data, currIP)
 			// simply replace it
@@ -174,6 +183,11 @@ func handler() (string, error) {
 	var updates2 []godaddy.DnsRecordCreateType
 	// check records
 	for _, r := range dnsRecords {
+		if !strArrContains(whitelist, r.Name) {
+			logrus.Warnf("%s is not in allowed names list, hence will not be updated.", r.Name)
+			continue
+		}
+
 		if r.Data != currIP || r.Ttl != int32(ttl) {
 			logrus.Warnf("Current IP has changed for %s. Updating %s -> %s", r.Name, r.Data, currIP)
 			// simply replace it
@@ -213,4 +227,14 @@ func handler() (string, error) {
 		//spew.Dump(dnsRecords)
 		return "no update is required", nil
 	}
+}
+
+// Determines if a string is part of the array
+func strArrContains(arr []string, s string) bool {
+	for _, str := range arr {
+		if str == s {
+			return true
+		}
+	}
+	return false
 }

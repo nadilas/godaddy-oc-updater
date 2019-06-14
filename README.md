@@ -11,7 +11,8 @@ A kubeless package to update the IP address in A records of a godaddy.com manage
 
 #### Optional
 - API_NEW_TTL - set it to an integer to update TTL as well 
-
+- DOMAIN_NAMES_WHITELIST - a whitelist of A record names to be updated.
+  > Note: if no whitelist is provided all A records will be considered for update
 ## Run
 
 When the application runs it grabs the current public IP.
