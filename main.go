@@ -70,10 +70,12 @@ func GetOutboundIP() (net.IP, error) {
 
 func handler() (string, error) {
 	setup()
+	var whitelist []string
 	allowedNamesStr := os.Getenv("DOMAIN_NAMES_WHITELIST")
-	whitelist := strings.Split(allowedNamesStr, ",")
-	if len(whitelist) == 0 {
+	if allowedNamesStr == "" {
 		logrus.Infof("No whitelist provided, update will consider all A records for update.")
+	} else {
+		whitelist = strings.Split(allowedNamesStr, ",")
 	}
 	domain := os.Getenv("API_DOMAIN")
 	if domain == "" {
@@ -127,7 +129,7 @@ func handler() (string, error) {
 	var updates []godaddy.DnsRecordCreateType
 	// check records
 	for _, r := range dnsRecords {
-		if !strArrContains(whitelist, r.Name) {
+		if len(whitelist) > 0 && !strArrContains(whitelist, r.Name) {
 			logrus.Warnf("%s is not in allowed names list, hence will not be updated.", r.Name)
 			continue
 		}
@@ -183,7 +185,7 @@ func handler() (string, error) {
 	var updates2 []godaddy.DnsRecordCreateType
 	// check records
 	for _, r := range dnsRecords {
-		if !strArrContains(whitelist, r.Name) {
+		if len(whitelist) > 0 && !strArrContains(whitelist, r.Name) {
 			logrus.Warnf("%s is not in allowed names list, hence will not be updated.", r.Name)
 			continue
 		}
