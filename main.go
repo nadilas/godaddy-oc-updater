@@ -131,6 +131,17 @@ func handler() (string, error) {
 	for _, r := range dnsRecords {
 		if len(whitelist) > 0 && !strArrContains(whitelist, r.Name) {
 			logrus.Warnf("%s is not in allowed names list, hence will not be updated.", r.Name)
+			// put back as is
+			updates = append(updates, godaddy.DnsRecordCreateType{
+				Data:     r.Data,
+				Name:     r.Name,
+				Port:     r.Port,
+				Priority: r.Priority,
+				Protocol: r.Protocol,
+				Service:  r.Service,
+				Ttl:      r.Ttl,
+				Weight:   r.Weight,
+			})
 			continue
 		}
 		if r.Data != currIP || r.Ttl != int32(ttl) {
@@ -187,6 +198,17 @@ func handler() (string, error) {
 	for _, r := range dnsRecords {
 		if len(whitelist) > 0 && !strArrContains(whitelist, r.Name) {
 			logrus.Warnf("%s is not in allowed names list, hence will not be updated.", r.Name)
+			// put back as is
+			updates2 = append(updates2, godaddy.DnsRecordCreateType{
+				Data:     r.Data,
+				Name:     r.Name,
+				Port:     r.Port,
+				Priority: r.Priority,
+				Protocol: r.Protocol,
+				Service:  r.Service,
+				Ttl:      r.Ttl,
+				Weight:   r.Weight,
+			})
 			continue
 		}
 
