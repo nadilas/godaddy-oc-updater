@@ -161,6 +161,18 @@ func handler() (string, error) {
 				Ttl:      int32(ttl),
 				Weight:   r.Weight,
 			})
+		} else {
+			// put back as is
+			updates = append(updates, godaddy.DnsRecordCreateType{
+				Data:     r.Data,
+				Name:     r.Name,
+				Port:     r.Port,
+				Priority: r.Priority,
+				Protocol: r.Protocol,
+				Service:  r.Service,
+				Ttl:      r.Ttl,
+				Weight:   r.Weight,
+			})
 		}
 	}
 	if len(updates) > 0 {
@@ -227,6 +239,18 @@ func handler() (string, error) {
 				Protocol: r.Protocol,
 				Service:  r.Service,
 				Ttl:      int32(ttl),
+				Weight:   r.Weight,
+			})
+		} else {
+			// put back as is
+			updates = append(updates, godaddy.DnsRecordCreateType{
+				Data:     r.Data,
+				Name:     r.Name,
+				Port:     r.Port,
+				Priority: r.Priority,
+				Protocol: r.Protocol,
+				Service:  r.Service,
+				Ttl:      r.Ttl,
 				Weight:   r.Weight,
 			})
 		}
