@@ -1,18 +1,14 @@
 # based on https://github.com/gliderlabs/registrator/blob/master/Dockerfile
-FROM alpine:3.7 AS builder
+FROM golang:1.14-alpine3.12 AS builder
+ARG version
+ENV VERSION=$version
 COPY . /opt/godaddy-oc-updater
-RUN apk --no-cache add -t build-deps build-base go git curl \
+RUN apk --no-cache add -t curl \
 	&& apk --no-cache add ca-certificates \
-	&& export GOPATH=/go && mkdir -p /go/bin && export PATH=$PATH:/go/bin \
-	&& curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh \
 	&& cd /opt/godaddy-oc-updater \
-	&& export GOPATH=/go \
-	&& git config --global http.https://gopkg.in.followRedirects true \
-	&& go build -ldflags "-X main.Version=$(cat VERSION)" -o /bin/ip-updater \
-	&& rm -rf /go \
-	&& apk del --purge build-deps
+	&& go build -ldflags "-X main.Version=$(echo $VERSION)" -o /bin/ip-updater
 
-FROM alpine:3.7
+FROM alpine:3.12
 COPY --from=builder /bin/ip-updater /bin/ip-updater
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 ENTRYPOINT ["/bin/ip-updater"]
