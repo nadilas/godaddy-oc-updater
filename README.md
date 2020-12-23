@@ -1,6 +1,6 @@
 # Godaddy-oc-updater
 
-A kubeless package to update the IP address in A records of a godaddy.com managed domain.
+A package to update the IP address in A records of a godaddy.com managed domain.
 
 ## Environment variables
 #### Required
